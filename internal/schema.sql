@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL UNIQUE,
     username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'user' CHECK (role in ('user', 'moderator')),
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -26,7 +27,7 @@ CREATE TABLE IF NOT EXISTS comments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    parentid INTEGER REFERENCES comments(id) ON DELETE CASCADE,
+    parent_comment_id INTEGER REFERENCES comments(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -51,11 +52,12 @@ CREATE TABLE IF NOT EXISTS comment_reactions (
 );
 
 CREATE TABLE IF NOT EXISTS notifications (
-    id INTEGER NOT NULL AUTOINCREMENT,
-    user_id INTEGER NOT NULL REFERENCES users(id),
-    post_id INTEGER REFERENCES posts(id),
-    comment_id INTEGER REFERENCES comments(id),
-    type TEXT NOT NULL CHECK (type in ('comment', 'post')),
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    actor_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+    comment_id INTEGER REFERENCES comments(id) ON DELETE CASCADE,
+    type TEXT NOT NULL CHECK (type in ('comment', 'reaction')),
     read_at DATETIME,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

@@ -17,6 +17,13 @@ const (
 	RoleModerator Role = "moderator"
 )
 
+type NotificationType string
+
+const (
+	NotifComment  NotificationType = "comment"
+	NotifReaction NotificationType = "reaction"
+)
+
 type User struct {
 	ID           int
 	Email        string
@@ -53,26 +60,38 @@ type ReactionSummary struct {
 type PostReaction struct {
 	UserID    int
 	PostID    int
-	Value     int
+	Value     Reaction
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
 type Comment struct {
-	ID             int
-	PostID         int
-	UserID         int
-	AuthorUsername string
-	Content        string
-	Reactions      ReactionSummary
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID              int
+	PostID          int
+	UserID          int
+	ParentCommentID *int
+	AuthorUsername  string
+	Content         string
+	Reactions       ReactionSummary
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 type CommentReaction struct {
 	UserID    int
 	CommentID int
-	Value     int
+	Value     Reaction
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type Notification struct {
+	ID        int
+	UserID    int
+	ActorID   int
+	PostID    *int
+	CommentID *int
+	Type      NotificationType
+	ReadAt    *time.Time
+	CreatedAt time.Time
 }
