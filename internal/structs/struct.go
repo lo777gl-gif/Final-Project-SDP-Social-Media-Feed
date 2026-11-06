@@ -1,18 +1,29 @@
-package internal
+package structs
 
 import "time"
 
+type Reaction int
+
 const (
-	ReactionLike    = 1
-	ReactionDislike = -1
+	ReactionLike    Reaction = 1
+	ReactionNone    Reaction = 0
+	ReactionDislike Reaction = -1
+)
+
+type Role string
+
+const (
+	RoleUser      Role = "user"
+	RoleModerator Role = "moderator"
 )
 
 type User struct {
-	ID        int
-	Email     string
-	Username  string
-	Password  string
-	CreatedAt time.Time
+	ID           int
+	Email        string
+	Username     string
+	Role         Role
+	PasswordHash string
+	CreatedAt    time.Time
 }
 
 type Session struct {
@@ -25,15 +36,18 @@ type Session struct {
 type Post struct {
 	ID             int
 	UserID         int
-	CommentID      int
 	AuthorUsername string
 	Title          string
 	Content        string
-	LikeCount      int
-	DislikeCount   int
-	UserReaction   int
+	Reactions      ReactionSummary
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+}
+
+type ReactionSummary struct {
+	LikeCount    int
+	DislikeCount int
+	UserReaction Reaction
 }
 
 type PostReaction struct {
@@ -41,6 +55,7 @@ type PostReaction struct {
 	PostID    int
 	Value     int
 	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type Comment struct {
@@ -49,9 +64,7 @@ type Comment struct {
 	UserID         int
 	AuthorUsername string
 	Content        string
-	LikeCount      int
-	DislikeCount   int
-	UserReaction   int
+	Reactions      ReactionSummary
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
