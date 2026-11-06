@@ -27,7 +27,7 @@ type User struct {
 }
 
 type Session struct {
-	ID        int
+	ID        string
 	UserID    int
 	ExpiresAt time.Time
 	CreatedAt time.Time
@@ -74,4 +74,5 @@ type CommentReaction struct {
 	CommentID int
 	Value     int
 	CreatedAt time.Time
+	UpdatedAt time.Time
 }
