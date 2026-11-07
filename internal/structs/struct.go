@@ -39,13 +39,22 @@ type Session struct {
 	ExpiresAt time.Time
 	CreatedAt time.Time
 }
+type PostKind string
+
+const (
+	PostKindText  PostKind = "text"
+	PostKindImage PostKind = "image"
+	PostKindLink  PostKind = "link"
+)
 
 type Post struct {
 	ID             int
 	UserID         int
 	AuthorUsername string
+	Kind           PostKind
 	Title          string
 	Content        string
+	MediaURL       string
 	Reactions      ReactionSummary
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
