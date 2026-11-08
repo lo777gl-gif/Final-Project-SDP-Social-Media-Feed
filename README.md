@@ -12,6 +12,8 @@ Project about creating Social Media Feed
 │   └── server/
 │       └── main.go              
 ├── internal/
+│   ├── api/                      # HTTP handlers (auth, moderation, external)
+│   ├── auth/                     # Users, sessions, login and register
 │   ├── adapter/                  # Pattern Adapter
 │   |   └── adapter.go
 │   ├── observer/                 # Pattern Observer
@@ -42,3 +44,9 @@ SQLite is a powerful database for listing settings and user info.
 - Social Interaction and Notifications
 - Moderation and processing of posts
 - Integration of external content
+
+## How to run
+```bash
+go run ./cmd/server
+```
+Open http://localhost:8080. The first registered user becomes a moderator.
