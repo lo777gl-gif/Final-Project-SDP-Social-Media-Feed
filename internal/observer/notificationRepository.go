@@ -66,7 +66,9 @@ func (r *Repo) InsertNotification(notif structs.Notification) error {
 }
 
 func (r *Repo) ListNotificationForUser(userID int) ([]structs.Notification, error) {
-	rows, err := r.db.Query(`SELECT id, user_id, actor_id, post_id, comment_id, type, read_at, created_at FROM notifications WHERE user_id = ? ORDER BY created_at DESC, id DESC`,
+	rows, err := r.db.Query(`SELECT n.id, n.user_id, n.actor_id, u.username, n.post_id, n.comment_id, n.type, n.read_at, n.created_at
+		FROM notifications n JOIN users u ON u.id = n.actor_id
+		WHERE n.user_id = ? ORDER BY n.created_at DESC, n.id DESC`,
 		userID)
 	if err != nil {
 		return nil, err
@@ -75,7 +77,7 @@ func (r *Repo) ListNotificationForUser(userID int) ([]structs.Notification, erro
 	result := []structs.Notification{}
 	for rows.Next() {
 		notif := structs.Notification{}
-		if err := rows.Scan(&notif.ID, &notif.UserID, &notif.ActorID, &notif.PostID, &notif.CommentID,
+		if err := rows.Scan(&notif.ID, &notif.UserID, &notif.ActorID, &notif.ActorUsername, &notif.PostID, &notif.CommentID,
 			&notif.Type, &notif.ReadAt, &notif.CreatedAt); err != nil {
 			return nil, err
 		}

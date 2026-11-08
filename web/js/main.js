@@ -97,6 +97,7 @@ function showApp() {
     $("current-user").textContent = currentUser.username + " (" + currentUser.role + ")";
     show($("nav-moderation"), currentUser.role === "moderator");
     openPage("feed");
+    initSocial();
     loadExternalOptions();
     if (currentUser.role === "moderator") {
         loadStrategies();
@@ -105,6 +106,7 @@ function showApp() {
 
 function showAuth() {
     currentUser = null;
+    stopSocial();
     show($("topbar"), false);
     show($("app"), false);
     show($("auth-screen"), true);

@@ -95,12 +95,13 @@ type CommentReaction struct {
 }
 
 type Notification struct {
-	ID        int
-	UserID    int
-	ActorID   int
-	PostID    *int
-	CommentID *int
-	Type      NotificationType
-	ReadAt    *time.Time
-	CreatedAt time.Time
+	ID            int
+	UserID        int
+	ActorID       int
+	ActorUsername string
+	PostID        *int
+	CommentID     *int
+	Type          NotificationType
+	ReadAt        *time.Time
+	CreatedAt     time.Time
 }
