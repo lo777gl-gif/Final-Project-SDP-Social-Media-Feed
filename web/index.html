@@ -3,12 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-
+    <title>Social Feed</title>
     <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
-    <!-- No front for now :))) -->
-    <script href="js/main.js"></script>
+    <header class="topbar hidden" id="topbar">
+        <div class="logo">Social Feed</div>
+        <nav>
+            <button class="nav-btn active" data-page="feed">Feed</button>
+            <button class="nav-btn" data-page="external">External</button>
+            <button class="nav-btn hidden" data-page="moderation" id="nav-moderation">Moderation</button>
+        </nav>
+        <div class="user-box">
+            <span id="current-user"></span>
+            <button class="btn-small" id="logout-btn">Log out</button>
+        </div>
+    </header>
+
+    <section class="auth-screen hidden" id="auth-screen">
+        <div class="card auth-card">
+            <h1>Social Feed</h1>
+            <div class="tabs">
+                <button class="tab active" data-tab="login">Log in</button>
+                <button class="tab" data-tab="register">Register</button>
+            </div>
+
+            <form id="login-form">
+                <label>Email or username<input name="login" required></label>
+                <label>Password<input name="password" type="password" required></label>
+                <button type="submit">Log in</button>
+            </form>
+
+            <form id="register-form" class="hidden">
+                <label>Email<input name="email" type="email" required></label>
+                <label>Username<input name="username" minlength="3" maxlength="30" required></label>
+                <label>Password<input name="password" type="password" minlength="6" required></label>
+                <button type="submit">Create account</button>
+            </form>
+
+            <p class="message" id="auth-message"></p>
+        </div>
+    </section>
+
+    <main class="hidden" id="app">
+        <section class="page" id="page-feed">
+            <h2>Feed</h2>
+            <div id="feed-root" class="card muted">The feed will appear here.</div>
+        </section>
+
+        <section class="page hidden" id="page-external">
+            <h2>External content</h2>
+            <div class="toolbar">
+                <label>Source <select id="external-source"></select></label>
+                <label>Moderation <select id="external-strategy"></select></label>
+                <button id="external-load">Load</button>
+            </div>
+            <p class="message" id="external-message"></p>
+            <div id="external-list"></div>
+        </section>
+
+        <section class="page hidden" id="page-moderation">
+            <h2>Moderation panel</h2>
+            <div class="toolbar">
+                <label>Strategy <select id="mod-strategy"></select></label>
+                <label class="inline"><input type="checkbox" id="mod-only-flagged"> Only flagged</label>
+                <button id="mod-load">Check posts</button>
+            </div>
+            <p class="message" id="mod-message"></p>
+            <div id="mod-list"></div>
+
+            <h3>Try a text</h3>
+            <form id="mod-check-form" class="card">
+                <label>Title<input name="title"></label>
+                <label>Content<textarea name="content" rows="3"></textarea></label>
+                <label>Link<input name="media_url"></label>
+                <button type="submit">Check</button>
+                <p class="message" id="mod-check-result"></p>
+            </form>
+        </section>
+    </main>
+
+    <script src="js/main.js"></script>
 </body>
 </html>
