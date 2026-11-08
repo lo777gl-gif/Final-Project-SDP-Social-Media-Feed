@@ -96,9 +96,19 @@ func (r *Repo) CommentAuthorID(commentID int) (int, error) {
 	return id, err
 }
 
-func (r *Repo) MarkNotificationRead(id int) error {
-	_, err := r.db.Exec(`UPDATE notifications SET read_at = CURRENT_TIMESTAMP WHERE id = ?`, id)
-	return err
+func (r *Repo) CommentPostID(commentID int) (int, error) {
+	var id int
+	err := r.db.QueryRow(`SELECT post_id FROM comments WHERE id = ?`, commentID).Scan(&id)
+	return id, err
+}
+
+func (r *Repo) MarkNotificationRead(id int, userID int) (bool, error) {
+	res, err := r.db.Exec(`UPDATE notifications SET read_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?`, id, userID)
+	if err != nil {
+		return false, err
+	}
+	n, err := res.RowsAffected()
+	return n > 0, err
 }
 
 func (r *Repo) CountUnreadNotifications(userID int) (int, error) {

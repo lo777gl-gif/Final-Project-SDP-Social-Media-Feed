@@ -7,6 +7,7 @@ import (
 
 	"final/internal/adapter"
 	"final/internal/auth"
+	"final/internal/observer"
 	"final/internal/structs"
 )
 
@@ -16,13 +17,21 @@ type Server struct {
 	db      *sql.DB
 	auth    *auth.Service
 	sources map[string]adapter.ContentSource
+	social  *observer.Repo
+	events  *observer.Subject
 }
 
 func NewServer(db *sql.DB) *Server {
+	social := observer.NewRepo(db)
+	events := observer.NewSubject()
+	events.Subscribe(observer.NewNotifier(social))
+
 	s := &Server{
 		db:      db,
 		auth:    auth.NewService(auth.NewRepo(db)),
 		sources: map[string]adapter.ContentSource{},
+		social:  social,
+		events:  events,
 	}
 	s.AddSource(adapter.NewJSONPlaceholderAdapter("https://jsonplaceholder.typicode.com/posts"))
 	s.AddSource(adapter.NewRSSAdapter("bbc_news", "https://feeds.bbci.co.uk/news/rss.xml"))
@@ -46,6 +55,14 @@ func (s *Server) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/moderation/posts", s.moderatorOnly(s.handleModerationPosts))
 	mux.HandleFunc("POST /api/moderation/check", s.moderatorOnly(s.handleModerationCheck))
 	mux.HandleFunc("DELETE /api/moderation/posts/{id}", s.moderatorOnly(s.handleDeletePost))
+
+	mux.HandleFunc("POST /api/posts/{id}/reactions", s.loginOnly(s.handleReactPost))
+	mux.HandleFunc("POST /api/comments/{id}/reactions", s.loginOnly(s.handleReactComment))
+	mux.HandleFunc("GET /api/posts/{id}/comments", s.loginOnly(s.handleListComments))
+	mux.HandleFunc("POST /api/posts/{id}/comments", s.loginOnly(s.handleCreateComment))
+	mux.HandleFunc("GET /api/notifications", s.loginOnly(s.handleListNotifications))
+	mux.HandleFunc("GET /api/notifications/unread-count", s.loginOnly(s.handleUnreadCount))
+	mux.HandleFunc("POST /api/notifications/{id}/read", s.loginOnly(s.handleMarkRead))
 }
 
 func (s *Server) CurrentUser(r *http.Request) *structs.User {
@@ -98,3 +115,4 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 func readJSON(r *http.Request, v any) error {
 	return json.NewDecoder(r.Body).Decode(v)
 }
+

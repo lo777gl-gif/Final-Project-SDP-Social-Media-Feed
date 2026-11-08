@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	db, err := sql.Open("sqlite3", "app.db?_foreign_keys=on")
+	db, err := sql.Open("sqlite3", "app.db?_foreign_keys=on&_busy_timeout=5000")
 	if err != nil {
 		log.Fatal(err)
 	}
