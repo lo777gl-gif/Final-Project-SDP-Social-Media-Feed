@@ -20,7 +20,7 @@ func NewFactory() *Factory {
 	return &Factory{}
 }
 
-func (f *Factory) Create(kind structs.PostKind, userID int, content, mediaURL string) (*structs.Post, error) {
+func (f *Factory) Create(kind structs.PostKind, title string, userID int, content, mediaURL string) (*structs.Post, error) {
 	p := &structs.Post{
 		UserID:    userID,
 		Kind:      kind,
@@ -45,7 +45,7 @@ func (f *Factory) Validate(p *structs.Post) error {
 	if p == nil {
 		return invalid("post is nil")
 	}
-	if p.AuthorID <= 0 {
+	if p.UserID <= 0 {
 		return invalid("author_id must be positive")
 	}
 	if utf8.RuneCountInString(p.Content) > MaxContentLength {
