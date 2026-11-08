@@ -84,7 +84,63 @@ func (r *Repo) ListNotificationForUser(userID int) ([]structs.Notification, erro
 	return result, rows.Err()
 }
 
+func (r *Repo) PostAuthorID(postID int) (int, error) {
+	var id int
+	err := r.db.QueryRow(`SELECT user_id FROM posts WHERE id = ?`, postID).Scan(&id)
+	return id, err
+}
+
+func (r *Repo) CommentAuthorID(commentID int) (int, error) {
+	var id int
+	err := r.db.QueryRow(`SELECT user_id FROM comments WHERE id = ?`, commentID).Scan(&id)
+	return id, err
+}
+
 func (r *Repo) MarkNotificationRead(id int) error {
 	_, err := r.db.Exec(`UPDATE notifications SET read_at = CURRENT_TIMESTAMP WHERE id = ?`, id)
 	return err
+}
+
+func (r *Repo) CountUnreadNotifications(userID int) (int, error) {
+	var n int
+	err := r.db.QueryRow(`SELECT COUNT(*) FROM notifications WHERE user_id = ? AND read_at IS NULL`, userID).Scan(&n)
+	return n, err
+}
+
+func (r *Repo) CreateComment(postID int, userID int, parentCommentID *int, content string) (int, error) {
+	res, err := r.db.Exec(`INSERT INTO comments (post_id, user_id, parent_comment_id, content) VALUES (?, ?, ?, ?)`,
+		postID, userID, parentCommentID, content)
+	if err != nil {
+		return 0, err
+	}
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return int(id), nil
+}
+
+func (r *Repo) ListComments(postID int, viewerID int) ([]structs.Comment, error) {
+	rows, err := r.db.Query(`SELECT c.id, c.post_id, c.user_id, c.parent_comment_id, u.username, c.content,
+		(SELECT COUNT(*) FROM comment_reactions cr WHERE cr.comment_id = c.id AND cr.value = 1),
+		(SELECT COUNT(*) FROM comment_reactions cr WHERE cr.comment_id = c.id AND cr.value = -1),
+		COALESCE((SELECT cr.value FROM comment_reactions cr WHERE cr.comment_id = c.id AND cr.user_id = ?), 0),
+		c.created_at, c.updated_at
+		FROM comments c JOIN users u ON u.id = c.user_id
+		WHERE c.post_id = ? ORDER BY c.created_at, c.id`, viewerID, postID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	result := []structs.Comment{}
+	for rows.Next() {
+		c := structs.Comment{}
+		if err := rows.Scan(&c.ID, &c.PostID, &c.UserID, &c.ParentCommentID, &c.AuthorUsername, &c.Content,
+			&c.Reactions.LikeCount, &c.Reactions.DislikeCount, &c.Reactions.UserReaction,
+			&c.CreatedAt, &c.UpdatedAt); err != nil {
+			return nil, err
+		}
+		result = append(result, c)
+	}
+	return result, rows.Err()
 }
