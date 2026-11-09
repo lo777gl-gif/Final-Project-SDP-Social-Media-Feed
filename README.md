@@ -57,7 +57,254 @@ The project is implemented in Go using the standard library for HTTP routing and
 ```
 
 ## UML Diagram:
-coming soon...
+
+### Design patterns (all patterns included)
+
+```mermaid
+classDiagram
+    direction LR
+
+    class Server {
+        +Routes(mux)
+        +CurrentUser(r) User
+    }
+
+    %% Facade
+    class Facade {
+        +CreatePost(...) PostView
+        +Feed(...) PostView[]
+        +DeletePost(id)
+    }
+
+    %% Factory
+    class Factory {
+        +Create(kind, title, userID, content, mediaURL) Post
+        +Validate(p) error
+    }
+
+    %% Strategy
+    class ModerationStrategy {
+        <<interface>>
+        +Name() string
+        +Check(p Post) Result
+    }
+    class Moderator {
+        +SetStrategy(s)
+        +Check(p Post) Result
+        +Filter(posts) Post[]
+    }
+    class AllowAll
+    class BannedWords
+    class CapsSpam
+    class BlockedLinks
+    class Strict
+
+    %% Decorator
+    class PostComponent {
+        <<interface>>
+        +Post() Post
+        +Badges() string[]
+    }
+    class basePost
+    class edited
+    class flagged
+    class PostView {
+        +Post
+        +Badges string[]
+    }
+
+    %% Observer
+    class Observer {
+        <<interface>>
+        +Notify(e Event) error
+    }
+    class Subject {
+        +Subscribe(o Observer)
+        +Publish(e Event)
+    }
+    class Notifier {
+        +Notify(e Event) error
+    }
+    class notificationStore {
+        <<interface>>
+        +InsertNotification(n)
+        +PostAuthorID(id) int
+        +CommentAuthorID(id) int
+    }
+    class Repo {
+        +SavePostReactions(...)
+        +SaveCommentReactions(...)
+        +CreateComment(...)
+        +ListComments(...)
+        +ListNotificationForUser(id)
+    }
+
+    %% Adapter
+    class ContentSource {
+        <<interface>>
+        +Name() string
+        +FetchPosts(limit) Post[]
+    }
+    class JSONPlaceholderAdapter
+    class RSSAdapter
+
+    class PostStore {
+        +Create(p)
+        +GetByID(id, viewerID)
+        +List(viewerID, limit, offset)
+    }
+
+    Server --> Facade
+    Server --> Subject
+    Server --> Repo
+    Server --> ContentSource
+
+    Facade --> Factory : builds posts
+    Facade --> PostStore : saves and loads
+    Facade --> Moderator : flag check
+    Facade ..> PostView : returns
+
+    ModerationStrategy <|.. AllowAll
+    ModerationStrategy <|.. BannedWords
+    ModerationStrategy <|.. CapsSpam
+    ModerationStrategy <|.. BlockedLinks
+    ModerationStrategy <|.. Strict
+    Strict o-- ModerationStrategy : chains
+    Moderator o-- ModerationStrategy : uses one
+
+    PostComponent <|.. basePost
+    PostComponent <|.. edited
+    PostComponent <|.. flagged
+    edited o-- PostComponent : wraps
+    flagged o-- PostComponent : wraps
+    PostView ..> PostComponent : built from
+
+    Observer <|.. Notifier
+    Subject o-- Observer : subscribers
+    Notifier --> notificationStore
+    notificationStore <|.. Repo
+
+    ContentSource <|.. JSONPlaceholderAdapter
+    ContentSource <|.. RSSAdapter
+```
+
+### Data structures (backend part)
+
+```mermaid
+classDiagram
+    direction LR
+
+    class User {
+        +int ID
+        +string Email
+        +string Username
+        +Role Role
+        +string PasswordHash
+        +time CreatedAt
+    }
+    class Session {
+        +string ID
+        +int UserID
+        +time ExpiresAt
+        +time CreatedAt
+    }
+    class Post {
+        +int ID
+        +int UserID
+        +string AuthorUsername
+        +PostKind Kind
+        +string Title
+        +string Content
+        +string MediaURL
+        +ReactionSummary Reactions
+        +time CreatedAt
+        +time UpdatedAt
+    }
+    class ReactionSummary {
+        +int LikeCount
+        +int DislikeCount
+        +Reaction UserReaction
+    }
+    class PostReaction {
+        +int UserID
+        +int PostID
+        +Reaction Value
+        +time CreatedAt
+        +time UpdatedAt
+    }
+    class Comment {
+        +int ID
+        +int PostID
+        +int UserID
+        +int ParentCommentID
+        +string AuthorUsername
+        +string Content
+        +ReactionSummary Reactions
+        +time CreatedAt
+        +time UpdatedAt
+    }
+    class CommentReaction {
+        +int UserID
+        +int CommentID
+        +Reaction Value
+        +time CreatedAt
+        +time UpdatedAt
+    }
+    class Notification {
+        +int ID
+        +int UserID
+        +int ActorID
+        +string ActorUsername
+        +int PostID
+        +int CommentID
+        +NotificationType Type
+        +time ReadAt
+        +time CreatedAt
+    }
+    class Reaction {
+        <<enumeration>>
+        Like = 1
+        None = 0
+        Dislike = -1
+    }
+    class Role {
+        <<enumeration>>
+        user
+        moderator
+    }
+    class PostKind {
+        <<enumeration>>
+        text
+        image
+        link
+    }
+    class NotificationType {
+        <<enumeration>>
+        comment
+        reaction
+    }
+
+    User "1" --> "*" Session : logs in
+    User "1" --> "*" Post : writes
+    User "1" --> "*" Comment : writes
+    Post "1" --> "*" Comment : has
+    Comment "0..1" <-- "*" Comment : replies to
+    Post "1" --> "*" PostReaction : receives
+    Comment "1" --> "*" CommentReaction : receives
+    User "1" --> "*" PostReaction : casts
+    User "1" --> "*" CommentReaction : casts
+    User "1" --> "*" Notification : receives
+    Notification --> User : actor
+    Notification --> Post : about
+    Notification --> Comment : about
+    Post *-- ReactionSummary
+    Comment *-- ReactionSummary
+    User --> Role
+    Post --> PostKind
+    PostReaction --> Reaction
+    CommentReaction --> Reaction
+    Notification --> NotificationType
+```
 
 ## 6 design patterns:
 Adapter: Acts as a "translator" for external sources (JSONPlaceholder API, RSS feeds). Downloads data in other formats (JSON, XML) and brings them to a single ContentSource domain interface and the internal structure of the Post.
