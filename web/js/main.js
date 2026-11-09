@@ -45,10 +45,29 @@ function makePostCard(post, extra) {
     meta.textContent = (post.AuthorUsername || "unknown") + " · " + new Date(post.CreatedAt).toLocaleString();
     card.appendChild(meta);
 
+    if (post.Badges && post.Badges.length > 0) {
+        const badges = document.createElement("div");
+        badges.className = "badges";
+        for (const name of post.Badges) {
+            const badge = document.createElement("span");
+            badge.className = name === "flagged" ? "badge bad" : "badge note";
+            badge.textContent = name;
+            badges.appendChild(badge);
+        }
+        card.appendChild(badges);
+    }
+
     if (post.Content) {
         const text = document.createElement("p");
         text.textContent = post.Content;
         card.appendChild(text);
+    }
+
+    if (post.Kind === "image" && post.MediaURL && post.MediaURL.startsWith("http")) {
+        const image = document.createElement("img");
+        image.src = post.MediaURL;
+        image.alt = post.Title || "image";
+        card.appendChild(image);
     }
 
     if (post.MediaURL && post.MediaURL.startsWith("http")) {
@@ -97,6 +116,7 @@ function showApp() {
     $("current-user").textContent = currentUser.username + " (" + currentUser.role + ")";
     show($("nav-moderation"), currentUser.role === "moderator");
     openPage("feed");
+    loadFeed();
     initSocial();
     loadExternalOptions();
     if (currentUser.role === "moderator") {
@@ -113,7 +133,12 @@ function showAuth() {
 }
 
 for (const btn of document.querySelectorAll(".nav-btn")) {
-    btn.addEventListener("click", () => openPage(btn.dataset.page));
+    btn.addEventListener("click", () => {
+        openPage(btn.dataset.page);
+        if (btn.dataset.page === "feed") {
+            loadFeed();
+        }
+    });
 }
 
 $("logout-btn").addEventListener("click", async () => {
@@ -157,6 +182,48 @@ $("register-form").addEventListener("submit", async (e) => {
         showApp();
     } catch (err) {
         setMessage("auth-message", err.message, true);
+    }
+});
+
+// Feed
+
+async function loadFeed() {
+    const root = $("feed-root");
+    try {
+        const posts = await api("GET", "/api/posts");
+        root.innerHTML = "";
+        if (posts.length === 0) {
+            const empty = document.createElement("div");
+            empty.className = "card muted";
+            empty.textContent = "No posts yet. Write the first one!";
+            root.appendChild(empty);
+        }
+        for (const p of posts) {
+            root.appendChild(makePostCard(p, makeSocialBar(p)));
+        }
+    } catch (err) {
+        root.innerHTML = "";
+        const bad = document.createElement("div");
+        bad.className = "card message error";
+        bad.textContent = err.message;
+        root.appendChild(bad);
+    }
+}
+
+$("post-kind").addEventListener("change", (e) => {
+    show($("post-media-label"), e.target.value !== "text");
+});
+
+$("post-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+        await api("POST", "/api/posts", formData(e.target));
+        e.target.reset();
+        show($("post-media-label"), false);
+        setMessage("post-message", "");
+        loadFeed();
+    } catch (err) {
+        setMessage("post-message", err.message, true);
     }
 });
 
@@ -265,9 +332,11 @@ $("mod-check-form").addEventListener("submit", async (e) => {
 
 // Start
 
-api("GET", "/api/me")
-    .then((user) => {
-        currentUser = user;
-        showApp();
-    })
-    .catch(showAuth);
+document.addEventListener("DOMContentLoaded", () => {
+    api("GET", "/api/me")
+        .then((user) => {
+            currentUser = user;
+            showApp();
+        })
+        .catch(showAuth);
+});

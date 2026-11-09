@@ -257,6 +257,24 @@ input, select, textarea {
     background: var(--bad-bg);
 }
 
+.post img {
+    display: block;
+    max-width: 100%;
+    margin: 8px 0;
+    border-radius: 6px;
+}
+
+.badges {
+    display: flex;
+    gap: 6px;
+    margin: 6px 0;
+}
+
+.badge.note {
+    color: var(--muted);
+    background: var(--bg);
+}
+
 @media (max-width: 600px) {
     .topbar {
         flex-wrap: wrap;

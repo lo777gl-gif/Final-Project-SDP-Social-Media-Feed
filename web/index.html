@@ -56,7 +56,21 @@
     <main class="hidden" id="app">
         <section class="page" id="page-feed">
             <h2>Feed</h2>
-            <div id="feed-root" class="card muted">The feed will appear here.</div>
+            <form id="post-form" class="card">
+                <label>Type
+                    <select name="kind" id="post-kind">
+                        <option value="text">Text</option>
+                        <option value="image">Image</option>
+                        <option value="link">Link</option>
+                    </select>
+                </label>
+                <label>Title<input name="title"></label>
+                <label>Content<textarea name="content" rows="3" maxlength="1000"></textarea></label>
+                <label class="hidden" id="post-media-label">URL<input name="media_url" type="url"></label>
+                <button type="submit">Publish</button>
+                <p class="message" id="post-message"></p>
+            </form>
+            <div id="feed-root"></div>
         </section>
 
         <section class="page hidden" id="page-external">
@@ -91,7 +105,7 @@
         </section>
     </main>
 
-    <script src="js/social.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/social.js"></script>
 </body>
 </html>
