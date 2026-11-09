@@ -63,3 +63,5 @@ CREATE TABLE IF NOT EXISTS notifications (
     read_at DATETIME,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC, id DESC);
