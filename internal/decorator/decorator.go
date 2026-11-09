@@ -13,7 +13,7 @@ type edited struct {
 
 type flagged struct {
 	innerComponent PostComponent
-	check func(structs.Post) bool
+	check          func(structs.Post) bool
 }
 
 type basePost struct {
@@ -74,5 +74,9 @@ type PostView struct {
 }
 
 func Build(component PostComponent) PostView {
-	return PostView{Post: component.Post(), Badges: component.Badges()}
+	badges := component.Badges()
+	if badges == nil {
+		badges = []string{}
+	}
+	return PostView{Post: component.Post(), Badges: badges}
 }

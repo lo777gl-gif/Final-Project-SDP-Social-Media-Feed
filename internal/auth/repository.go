@@ -51,7 +51,7 @@ func (r *Repo) GetUserByID(id int) (*structs.User, error) {
 
 func (r *Repo) GetUserByLogin(login string) (*structs.User, error) {
 	return r.scanUser(r.db.QueryRow(
-		`SELECT id, email, username, password_hash, role, created_at FROM users WHERE email = ? OR username = ?`,
+		`SELECT id, email, username, password_hash, role, created_at FROM users WHERE email = lower(?) OR username = ?`,
 		login, login))
 }
 

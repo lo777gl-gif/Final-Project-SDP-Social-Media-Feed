@@ -2,12 +2,13 @@ package factory
 
 import (
 	"errors"
-	"final/internal/structs"
 	"fmt"
 	"net/url"
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"final/internal/structs"
 )
 
 var ErrInvalidPost = errors.New("invalid post")
@@ -21,14 +22,15 @@ func NewFactory() *Factory {
 }
 
 func (f *Factory) Create(kind structs.PostKind, title string, userID int, content, mediaURL string) (*structs.Post, error) {
+	now := time.Now().UTC()
 	p := &structs.Post{
 		UserID:    userID,
 		Kind:      kind,
 		Title:     strings.TrimSpace(title),
 		Content:   strings.TrimSpace(content),
 		MediaURL:  strings.TrimSpace(mediaURL),
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 
 	if kind == structs.PostKindText {
@@ -46,7 +48,7 @@ func (f *Factory) Validate(p *structs.Post) error {
 		return invalid("post is nil")
 	}
 	if p.UserID <= 0 {
-		return invalid("author_id must be positive")
+		return invalid("user_id must be positive")
 	}
 	if utf8.RuneCountInString(p.Content) > MaxContentLength {
 		return invalid("content is longer than %d characters", MaxContentLength)

@@ -1,30 +1,25 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 	"os"
 
-	_ "github.com/mattn/go-sqlite3"
-
 	"final/internal/api"
+	"final/internal/store"
 )
 
 func main() {
-	db, err := sql.Open("sqlite3", "app.db?_foreign_keys=on&_busy_timeout=5000")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
 	schema, err := os.ReadFile("internal/schema.sql")
 	if err != nil {
 		log.Fatal(err)
 	}
-	if _, err := db.Exec(string(schema)); err != nil {
+
+	db, err := store.Open("app.db", string(schema))
+	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 
 	mux := http.NewServeMux()
 	server := api.NewServer(db)

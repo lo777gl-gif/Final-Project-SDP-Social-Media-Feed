@@ -7,6 +7,7 @@ import (
 
 	"final/internal/adapter"
 	"final/internal/auth"
+	"final/internal/facade"
 	"final/internal/observer"
 	"final/internal/structs"
 )
@@ -16,6 +17,7 @@ const sessionCookie = "session_id"
 type Server struct {
 	db      *sql.DB
 	auth    *auth.Service
+	facade  *facade.Facade
 	sources map[string]adapter.ContentSource
 	social  *observer.Repo
 	events  *observer.Subject
@@ -29,6 +31,7 @@ func NewServer(db *sql.DB) *Server {
 	s := &Server{
 		db:      db,
 		auth:    auth.NewService(auth.NewRepo(db)),
+		facade:  facade.New(db),
 		sources: map[string]adapter.ContentSource{},
 		social:  social,
 		events:  events,
@@ -47,6 +50,9 @@ func (s *Server) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/login", s.handleLogin)
 	mux.HandleFunc("POST /api/logout", s.handleLogout)
 	mux.HandleFunc("GET /api/me", s.handleMe)
+
+	mux.HandleFunc("GET /api/posts", s.loginOnly(s.handleFeed))
+	mux.HandleFunc("POST /api/posts", s.loginOnly(s.handleCreatePost))
 
 	mux.HandleFunc("GET /api/external/sources", s.handleExternalSources)
 	mux.HandleFunc("GET /api/external", s.handleExternal)
@@ -115,4 +121,3 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 func readJSON(r *http.Request, v any) error {
 	return json.NewDecoder(r.Body).Decode(v)
 }
-
