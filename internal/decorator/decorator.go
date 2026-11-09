@@ -13,7 +13,7 @@ type edited struct {
 
 type flagged struct {
 	innerComponent PostComponent
-	check func(structs.Post) bool
+	check          func(structs.Post) bool
 }
 
 type basePost struct {

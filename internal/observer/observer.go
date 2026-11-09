@@ -9,15 +9,15 @@ import (
 type EventType string
 
 const (
-	PostReactionEvent EventType = "post_reacted"
+	PostReactionEvent    EventType = "post_reacted"
 	CommentReactionEvent EventType = "comment_reacted"
-	CommentCreatedEvent EventType = "comment_created"
+	CommentCreatedEvent  EventType = "comment_created"
 )
 
 type Event struct {
-	Type EventType
-	ActorID int
-	PostID int
+	Type      EventType
+	ActorID   int
+	PostID    int
 	CommentID int
 }
 
@@ -32,8 +32,8 @@ type notificationStore interface {
 }
 
 type Subject struct {
-	mu sync.RWMutex
-	wg sync.WaitGroup
+	mu        sync.RWMutex
+	wg        sync.WaitGroup
 	observers []Observer
 }
 
@@ -55,7 +55,7 @@ func (s *Subject) Publish(e Event) {
 		s.wg.Add(1)
 		go func(o Observer) {
 			defer s.wg.Done()
-			defer func(){
+			defer func() {
 				if r := recover(); r != nil {
 					log.Printf("observer panicked")
 				}
@@ -66,4 +66,3 @@ func (s *Subject) Publish(e Event) {
 		}(observer)
 	}
 }
-
